@@ -28,7 +28,7 @@ const sendMail = async (options) => {
     });
 
     const mail = {
-        from: "taskmanger@gmail.com",
+        from:"taskmanger@gmail.com",
         to: options.email,
         subject: options.subject,
         text: emailPlaintext,

@@ -36,7 +36,7 @@ const userSchema = new Schema({
     fullName: {
         type: String,
         trim: true,
-        required: true,
+        required: false,
     },
 
     password: {
@@ -77,14 +77,14 @@ const userSchema = new Schema({
 
 // So, here i use pre-hook for password encryption before save the user data into database.
 
-userSchema.pre("save", async function (req, res, next) {
+userSchema.pre("save", async function (req, res) {
 
     if (!this.isModified("password")) {
-        return next();
+        return;
     }
 
     this.password = await bcrypt.hash(this.password, 10);
-    next();
+
 });
 
 //mongoose allow write methods inside Schema
@@ -98,7 +98,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 
 // METHODS FOR GENERATE ACCESS-TOEKN WITH DATA
 userSchema.methods.generateAccessToken = function () {
-    jwt.sign(
+    return jwt.sign(
         {
             _id: this._id,
             username: this.username,
@@ -115,7 +115,7 @@ userSchema.methods.generateAccessToken = function () {
 // METHODS FOR GENERATE REFRESH-TOEKN WITH DATA
 userSchema.methods.generateRefreshToken = function () {
 
-    jwt.sign(
+    return jwt.sign(
         {
             _id: this._id
         },
@@ -133,12 +133,12 @@ userSchema.methods.generateTemporaryToken = function () {
     const unHashedToken = crypto.randomBytes(50).toString("hex"); // generate string with help of crypto module of node.js
 
     const hashedToken = crypto
-        .createHmac("sha256")
+        .createHmac("sha256", process.env.HMAC_KEY)
         .update(unHashedToken)
         .digest("hex")
 
     const tokenExpiry = Date.now() + 20 * 60 * 1000; // 20min
-    return { unHashedToken, hashedToken , tokenExpiry }
+    return { unHashedToken, hashedToken, tokenExpiry }
 }
 
 
